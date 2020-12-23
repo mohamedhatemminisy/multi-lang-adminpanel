@@ -29,8 +29,8 @@ class ProductPriceValidation extends FormRequest
             'product_id' => 'required|exists:products,id',
             'special_price' => 'nullable|numeric',
             'special_price_type' => 'required_with:special_price|in:fixed,percent',
-            'special_price_start' => 'required_with:special_price',
-            'special_price_end' => 'required_with:special_price'
+            'special_price_start' => 'required_with:special_price|date|before:special_price_end',
+            'special_price_end' => 'required_with:special_price|date|after:special_price_start'
         ];
     }
 
