@@ -98,6 +98,8 @@ Route::group([
             Route::get('images/{id}','ProductsController@addImages') -> name('admin.products.images');
             Route::post('images','ProductsController@saveProductImages') -> name('admin.products.images.store');
             Route::post('images/db','ProductsController@saveProductImagesDB') -> name('admin.products.images.store.db');
+        Route::get('ckeditor', 'ProductsController@index');
+        Route::post('ckeditor/upload', 'ProductsController@upload')->name('ckeditor.upload');
         });
         ################################## end brands    #######################################
 

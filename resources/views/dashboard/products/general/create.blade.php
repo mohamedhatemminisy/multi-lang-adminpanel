@@ -237,5 +237,19 @@
                     $('#cats_list').addClass('hidden');
                 }
             });
+
+
+    CKEDITOR.replace('description', {
+        filebrowserUploadUrl: "{{route('ckeditor.upload', ['_token' => csrf_token() ])}}",
+        filebrowserUploadMethod: 'form'
+    });
+
+    CKEDITOR.replace('short_description', {
+        filebrowserUploadUrl: "{{route('ckeditor.upload', ['_token' => csrf_token() ])}}",
+        filebrowserUploadMethod: 'form'
+    });
     </script>
     @stop
+
+
+ 
