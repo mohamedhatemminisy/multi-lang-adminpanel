@@ -87,7 +87,7 @@
                                                 </div>
 
                                                 <div class="row">
-                                                    <div class="col-md-6">
+                                                    <div class="col-md-12">
                                                         <div class="form-group">
                                                             <label for="projectinput1"> وصف المنتج
                                                             </label>
@@ -102,7 +102,7 @@
                                                         </div>
                                                     </div>
 
-                                                    <div class="col-md-6">
+                                                    <div class="col-md-12">
                                                         <div class="form-group">
                                                             <label for="projectinput1"> الوصف المختصر
                                                             </label>
