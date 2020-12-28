@@ -14,7 +14,7 @@ class CreateAttributeTransalationsTable extends Migration
     public function up()
     {
         Schema::create('attribute_translations', function (Blueprint $table) {
-            $table->id();
+            $table->increments('id');
             $table->integer('attribute_id');
             $table->string('locale');
             $table->string('name');

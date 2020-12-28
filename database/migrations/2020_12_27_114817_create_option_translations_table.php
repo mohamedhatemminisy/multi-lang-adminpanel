@@ -14,8 +14,8 @@ class CreateOptionTranslationsTable extends Migration
     public function up()
     {
         Schema::create('option_translations', function (Blueprint $table) {
-            $table->id();
-            $table->integer('option_id');
+            $table->increments('id');
+            $table->integer('option_id')->unsigned();
             $table->string('locale');
             $table->string('name');
             $table->unique(['option_id', 'locale']);
