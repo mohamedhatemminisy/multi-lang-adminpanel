@@ -5,13 +5,16 @@ namespace App\Http\Controllers\Dashboard;
 use App\Http\Controllers\Controller;
 use App\Http\Enumerations\CategoryType;
 use App\Http\Requests\GeneralProductRequest;
-use App\Http\Requests\MainCategoryRequest;
+use App\Http\Requests\CategoryRequest;
+use App\Http\Requests\OptionsRequest;
 use App\Http\Requests\ProductImagesRequest;
 use App\Http\Requests\ProductPriceValidation;
 use App\Http\Requests\ProductStockRequest;
+use App\Models\Attribute;
 use App\Models\Brand;
 use App\Models\Category;
 use App\Models\Image;
+use App\Models\Option;
 use App\Models\Product;
 use App\Models\Tag;
 use Illuminate\Http\Request;
@@ -22,170 +25,78 @@ class OptionsController extends Controller
 
     public function index()
     {
-        $products = Product::select('id','slug','price', 'created_at')->paginate(PAGINATION_COUNT);
-        return view('dashboard.products.general.index', compact('products'));
+        $options = Option::with(['product' => function ($prod) {
+            $prod->select('id');
+        }, 'attribute' => function ($attr) {
+            $attr->select('id');
+        }])->select('id', 'product_id', 'attribute_id', 'price')->paginate(PAGINATION_COUNT);
+
+        return view('dashboard.options.index', compact('options'));
     }
 
     public function create()
     {
         $data = [];
-        $data['brands'] = Brand::active()->select('id')->get();
-        $data['tags'] = Tag::select('id')->get();
-        $data['categories'] = Category::active()->select('id')->get();
+        $data['products'] = Product::active()->select('id')->get();
+        $data['attributes'] = Attribute::select('id')->get();
 
-
-        return view('dashboard.products.general.create', $data);
+        return view('dashboard.options.create', $data);
     }
 
-    public function store(GeneralProductRequest $request)
+    public function store(OptionsRequest $request)
     {
 
 
         DB::beginTransaction();
 
         //validation
-
-        if (!$request->has('is_active'))
-            $request->request->add(['is_active' => 0]);
-        else
-            $request->request->add(['is_active' => 1]);
-
-        $product = Product::create([
-            'slug' => $request->slug,
-            'brand_id' => $request->brand_id,
-            'is_active' => $request->is_active,
+        $option = Option::create([
+            'attribute_id' => $request->attribute_id,
+            'product_id' => $request->product_id,
+            'price' => $request->price,
         ]);
         //save translations
-        $product->name = $request->name;
-        $product->description = $request->description;
-        $product->short_description = $request->short_description;
-        $product->save();
-
-        //save product categories
-
-        $product->categories()->attach($request->categories);
-
-        //save product tags
-
+        $option->name = $request->name;
+        $option->save();
         DB::commit();
-        return redirect()->route('admin.products')->with(['success' => 'تم ألاضافة بنجاح']);
 
-
+        return redirect()->route('admin.options')->with(['success' => 'تم ألاضافة بنجاح']);
     }
 
-
-
-    public function getPrice($product_id){
-
-        return view('dashboard.products.prices.create') -> with('id',$product_id) ;
-    }
-
-    public function saveProductPrice(ProductPriceValidation $request){
-
-        try{
-
-            Product::whereId($request -> product_id) -> update($request -> only(['price','special_price','special_price_type','special_price_start','special_price_end']));
-
-            return redirect()->route('admin.products')->with(['success' => 'تم التحديث بنجاح']);
-        }catch(\Exception $ex){
-
-        }
-    }
-
-
-
-    public function getStock($product_id){
-
-        return view('dashboard.products.stock.create') -> with('id',$product_id) ;
-    }
-
-    public function saveProductStock (ProductStockRequest $request){
-
-
-            Product::whereId($request -> product_id) -> update($request -> except(['_token','product_id']));
-
-            return redirect()->route('admin.products')->with(['success' => 'تم التحديث بنجاح']);
-
-    }
-
-    public function addImages($product_id){
-        return view('dashboard.products.images.create')->withId($product_id);
-    }
-
-    //to save images to folder only
-    public function saveProductImages(Request $request ){
-        $file = $request->file('dzfile');
-        $filename = uploadImage('products', $file);
-
-        return response()->json([
-            'name' => $filename,
-            'original_name' => $file->getClientOriginalName(),
-        ]);
-
-    }
-
-    public function saveProductImagesDB(ProductImagesRequest $request){
-
-        try {
-
-            // save dropzone images
-            if ($request->has('document') && count($request->document) > 0) {
-                foreach ($request->document as $image) {
-                    Image::create([
-                        'product_id' => $request->product_id,
-                        'photo' => $image,
-                    ]);
-                }
-            }
-
-            return redirect()->route('admin.products')->with(['success' => 'تم التحديث بنجاح']);
-
-        }catch(\Exception $ex){
-
-        }
-    }
-    public function edit($id)
+    public function edit($optionId)
     {
 
-        //get specific categories and its translations
-        $category = Category::orderBy('id', 'DESC')->find($id);
+        $data = [];
+         $data['option'] = Option::find($optionId);
 
-        if (!$category)
-            return redirect()->route('admin.maincategories')->with(['error' => 'هذا القسم غير موجود ']);
+        if (!$data['option'])
+            return redirect()->route('admin.options')->with(['error' => 'هذه القيمة غير موجود ']);
 
-        return view('dashboard.categories.edit', compact('category'));
+         $data['products'] = Product::active()->select('id')->get();
+        $data['attributes'] = Attribute::select('id')->get();
+
+        return view('dashboard.options.edit', $data);
 
     }
 
-
-    public function update($id, MainCategoryRequest $request)
+    public function update($id, OptionsRequest $request)
     {
         try {
-            //validation
 
-            //update DB
+             $option = Option::find($id);
 
+            if (!$option)
+                return redirect()->route('admin.options')->with(['error' => 'هذا ألعنصر غير موجود']);
 
-            $category = Category::find($id);
-
-            if (!$category)
-                return redirect()->route('admin.maincategories')->with(['error' => 'هذا القسم غير موجود']);
-
-            if (!$request->has('is_active'))
-                $request->request->add(['is_active' => 0]);
-            else
-                $request->request->add(['is_active' => 1]);
-
-            $category->update($request->all());
-
+            $option->update($request->only(['price','product_id','attribute_id']));
             //save translations
-            $category->name = $request->name;
-            $category->save();
+            $option->name = $request->name;
+            $option->save();
 
-            return redirect()->route('admin.maincategories')->with(['success' => 'تم ألتحديث بنجاح']);
+            return redirect()->route('admin.options')->with(['success' => 'تم ألتحديث بنجاح']);
         } catch (\Exception $ex) {
 
-            return redirect()->route('admin.maincategories')->with(['error' => 'حدث خطا ما برجاء المحاوله لاحقا']);
+            return redirect()->route('admin.options')->with(['error' => 'حدث خطا ما برجاء المحاوله لاحقا']);
         }
 
     }
@@ -193,39 +104,20 @@ class OptionsController extends Controller
 
     public function destroy($id)
     {
-
         try {
             //get specific categories and its translations
-            $category = Category::orderBy('id', 'DESC')->find($id);
+            $option = Option::orderBy('id', 'DESC')->find($id);
 
-            if (!$category)
-                return redirect()->route('admin.maincategories')->with(['error' => 'هذا القسم غير موجود ']);
+            if (!$option)
+                return redirect()->route('admin.options')->with(['error' => 'هذا القسم غير موجود ']);
 
-            $category->delete();
+            $option->delete();
 
-            return redirect()->route('admin.maincategories')->with(['success' => 'تم  الحذف بنجاح']);
+            return redirect()->route('admin.options')->with(['success' => 'تم  الحذف بنجاح']);
 
         } catch (\Exception $ex) {
-            return redirect()->route('admin.maincategories')->with(['error' => 'حدث خطا ما برجاء المحاوله لاحقا']);
+            return redirect()->route('admin.options')->with(['error' => 'حدث خطا ما برجاء المحاوله لاحقا']);
         }
     }
-    public function upload(Request $request)
-    {
-        if($request->hasFile('upload')) {
-            $originName = $request->file('upload')->getClientOriginalName();
-            $fileName = pathinfo($originName, PATHINFO_FILENAME);
-            $extension = $request->file('upload')->getClientOriginalExtension();
-            $fileName = $fileName.'_'.time().'.'.$extension;
-        
-            $request->file('upload')->move(public_path('images'), $fileName);
-   
-            $CKEditorFuncNum = $request->input('CKEditorFuncNum');
-            $url = asset('images/'.$fileName); 
-            $msg = 'Image uploaded successfully'; 
-            $response = "<script>window.parent.CKEDITOR.tools.callFunction($CKEditorFuncNum, '$url', '$msg')</script>";
-               
-            @header('Content-type: text/html; charset=utf-8'); 
-            echo $response;
-        }
-    }  
+
 }

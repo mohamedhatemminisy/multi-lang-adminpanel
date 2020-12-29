@@ -108,7 +108,7 @@ Route::group([
             Route::get('/','AttributesController@index') -> name('admin.attributes');
             Route::get('create','AttributesController@create') -> name('admin.attributes.create');
             Route::post('store','AttributesController@store') -> name('admin.attributes.store');
-             Route::get('delete/{id}','AttributesController@destroy') -> name('admin.attributes.delete');
+            Route::get('delete/{id}','AttributesController@destroy') -> name('admin.attributes.delete');
             Route::get('edit/{id}','AttributesController@edit') -> name('admin.attributes.edit');
             Route::post('update/{id}','AttributesController@update') -> name('admin.attributes.update');
         });
@@ -119,9 +119,9 @@ Route::group([
             Route::get('/','OptionsController@index') -> name('admin.options');
             Route::get('create','OptionsController@create') -> name('admin.options.create');
             Route::post('store','OptionsController@store') -> name('admin.options.store');
+            Route::get('edit/{id}','OptionsController@edit') -> name('admin.options.edit');
+            Route::post('update/{id}','OptionsController@update') -> name('admin.options.update');
             Route::get('delete/{id}','OptionsController@destroy') -> name('admin.options.delete');
-          //Route::get('edit/{id}','AttributesController@edit') -> name('admin.attributes.edit');
-            //Route::post('update/{id}','AttributesController@update') -> name('admin.attributes.update');
         });
         ################################## end options    #######################################
 
