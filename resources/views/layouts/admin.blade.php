@@ -54,6 +54,7 @@
     <!-- BEGIN Custom CSS-->
     <link rel="stylesheet" type="text/css" href="{{asset('assets/admin/css/style.css')}}">
     <!-- END Custom CSS-->
+    <script src="https://cdn.ckeditor.com/4.12.1/standard/ckeditor.js"></script>
     @notify_css
     @yield('style')
     <link href="https://fonts.googleapis.com/css?family=Cairo&display=swap" rel="stylesheet">
